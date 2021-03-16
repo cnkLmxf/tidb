@@ -37,6 +37,7 @@ import (
 
 type storeCache struct {
 	sync.Mutex
+	//对uuid和tikvStore的cache
 	cache map[string]*tikvStore
 }
 
@@ -71,7 +72,7 @@ func (d Driver) Open(path string) (kv.Storage, error) {
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
-
+	//创建pd客户端
 	pdCli, err := pd.NewClient(etcdAddrs)
 	if err != nil {
 		if strings.Contains(err.Error(), "i/o timeout") {
@@ -81,22 +82,23 @@ func (d Driver) Open(path string) (kv.Storage, error) {
 	}
 
 	// FIXME: uuid will be a very long and ugly string, simplify it.
+	//获取当前tikv集群的id,并进行拼接
 	uuid := fmt.Sprintf("tikv-%v", pdCli.GetClusterID(goctx.TODO()))
 	if store, ok := mc.cache[uuid]; ok {
 		return store, nil
 	}
-
+	//创建了一个etcd的客户端，并封装了一些safepoint相关的功能
 	spkv, err := NewEtcdSafePointKV(etcdAddrs)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
-
+	//创建tikv store ,其包含pd客户端，etcd客户端，rpc客户端，region和store的缓存
 	s, err := newTikvStore(uuid, &codecPDClient{pdCli}, spkv, newRPCClient(), !disableGC)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 	s.etcdAddrs = etcdAddrs
-
+	//缓存 uuid和tikvstore的映射
 	mc.cache[uuid] = s
 	return s, nil
 }
@@ -166,24 +168,25 @@ func (s *tikvStore) CheckVisibility(startTime uint64) error {
 }
 
 func newTikvStore(uuid string, pdClient pd.Client, spkv SafePointKV, client Client, enableGC bool) (*tikvStore, error) {
+	//创建tso
 	o, err := oracles.NewPdOracle(pdClient, time.Duration(oracleUpdateInterval)*time.Millisecond)
 	if err != nil {
 		return nil, errors.Trace(err)
 	}
 	store := &tikvStore{
-		clusterID:   pdClient.GetClusterID(goctx.TODO()),
-		uuid:        uuid,
-		oracle:      o,
-		client:      client,
-		pdClient:    pdClient,
-		regionCache: NewRegionCache(pdClient),
-		kv:          spkv,
-		safePoint:   0,
+		clusterID:   pdClient.GetClusterID(goctx.TODO()),//集群id
+		uuid:        uuid, //当前节点的ID
+		oracle:      o, //tso对象
+		client:      client, //rpc客户端
+		pdClient:    pdClient, //codec pd客户端
+		regionCache: NewRegionCache(pdClient),//拥有region和store的缓存
+		kv:          spkv, //etcd 上safepoint相关的客户端
+		safePoint:   0, //当前的safepoint
 		spTime:      time.Now(),
-		closed:      make(chan struct{}),
+		closed:      make(chan struct{}), //关闭的时候触发信号
 	}
-	store.lockResolver = newLockResolver(store)
-	store.enableGC = enableGC
+	store.lockResolver = newLockResolver(store) //缓存已解析的txns
+	store.enableGC = enableGC //是否打开gc
 
 	return store, nil
 }
@@ -293,6 +296,7 @@ func NewMockTikvStore(options ...MockTiKVStoreOption) (kv.Storage, error) {
 }
 
 func (s *tikvStore) Begin() (kv.Transaction, error) {
+	//构建事务
 	txn, err := newTiKVTxn(s)
 	if err != nil {
 		return nil, errors.Trace(err)

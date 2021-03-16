@@ -44,6 +44,7 @@ type tikvTxn struct {
 
 func newTiKVTxn(store *tikvStore) (*tikvTxn, error) {
 	bo := NewBackoffer(tsoMaxBackoff, goctx.Background())
+	//从tso中获取timestamp
 	startTS, err := store.getTimestampWithRetry(bo)
 	if err != nil {
 		return nil, errors.Trace(err)
@@ -53,12 +54,13 @@ func newTiKVTxn(store *tikvStore) (*tikvTxn, error) {
 
 // newTikvTxnWithStartTS creates a txn with startTS.
 func newTikvTxnWithStartTS(store *tikvStore, startTS uint64) (*tikvTxn, error) {
+	//构建快照的version
 	ver := kv.NewVersion(startTS)
 	snapshot := newTiKVSnapshot(store, ver)
 	return &tikvTxn{
-		snapshot:  snapshot,
-		us:        kv.NewUnionStore(snapshot),
-		store:     store,
+		snapshot:  snapshot, //快照（包含 timestamp构成的version）
+		us:        kv.NewUnionStore(snapshot),//用于读写的store
+		store:     store, //原始的tikvstore
 		startTS:   startTS,
 		startTime: time.Now(),
 		valid:     true,

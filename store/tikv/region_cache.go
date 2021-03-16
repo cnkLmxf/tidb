@@ -47,12 +47,13 @@ func (c *CachedRegion) isValid() bool {
 // RegionCache caches Regions loaded from PD.
 type RegionCache struct {
 	pdClient pd.Client
-
+	//获取region信息加锁
 	mu struct {
 		sync.RWMutex
 		regions map[RegionVerID]*CachedRegion
 		sorted  *llrb.LLRB
 	}
+	//获取store对象加锁
 	storeMu struct {
 		sync.RWMutex
 		stores map[uint64]*Store

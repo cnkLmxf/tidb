@@ -36,11 +36,12 @@ var (
 )
 
 // NewStructure creates a TxStructure with Retriever, RetrieverMutator and key prefix.
+// NewStructure 创建一个具有Retriever，RetrieverMutator和key前缀的TxStructure。
 func NewStructure(reader kv.Retriever, readWriter kv.RetrieverMutator, prefix []byte) *TxStructure {
 	return &TxStructure{
-		reader:     reader,
-		readWriter: readWriter,
-		prefix:     prefix,
+		reader:     reader, //读工具对象
+		readWriter: readWriter, //读和写的工具对象
+		prefix:     prefix, //用于读写范围的前缀
 	}
 }
 

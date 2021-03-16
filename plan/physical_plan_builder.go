@@ -45,6 +45,7 @@ const (
 )
 
 // JoinConcurrency means the number of goroutines that participate in joining.
+// JoinConcurrency表示参与联接的goroutine的数量。
 var JoinConcurrency = 5
 
 func (p *DataSource) convert2TableScan(prop *requiredProperty) (*physicalPlanInfo, error) {

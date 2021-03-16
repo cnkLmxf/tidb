@@ -20,7 +20,7 @@ import (
 	"github.com/pingcap/tidb/util/codec"
 	"golang.org/x/net/context"
 )
-
+//对结果进行编解码功能的pd客户端
 type codecPDClient struct {
 	pd.Client
 }

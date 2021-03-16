@@ -56,6 +56,7 @@ func (dm *domainMap) Get(store kv.Storage) (d *domain.Domain, err error) {
 	key := store.UUID()
 	dm.mu.Lock()
 	defer dm.mu.Unlock()
+	//已经存在则直接返回
 	d = dm.domains[key]
 	if d != nil {
 		return
@@ -69,8 +70,10 @@ func (dm *domainMap) Get(store kv.Storage) (d *domain.Domain, err error) {
 	}
 	err = util.RunWithRetry(defaultMaxRetries, retryInterval, func() (retry bool, err1 error) {
 		log.Infof("store %v new domain, ddl lease %v, stats lease %d", store.UUID(), ddlLease, statisticLease)
+		//构建session 并设置变量
 		factory := createSessionFunc(store)
 		sysFactory := createSessionWithDomainFunc(store)
+		//重点构建domain，并执行传递进去的func
 		d, err1 = domain.NewDomain(store, ddlLease, statisticLease, factory, sysFactory)
 		return true, errors.Trace(err1)
 	})
@@ -102,12 +105,17 @@ var (
 	// Default schema lease time is 1 second, you can change it with a proper time,
 	// but you must know that too little may cause badly performance degradation.
 	// For production, you should set a big schema lease, like 300s+.
+	// schemaLease是重新更新远程模式的时间。
+	//在在线DDL中，我们必须等待2 * SchemaLease时间，以确保所有服务器都获得neweset模式。
+	//默认模式租用时间为1秒，您可以在适当的时间对其进行更改，但是必须知道，设置得太少可能会导致性能严重下降。
+	//对于生产环境，您应该设置较大的架构租约，例如300s +。
 	schemaLease = 1 * time.Second
 
 	// statsLease is the time for reload stats table.
 	statsLease = 3 * time.Second
 
 	// The maximum number of retries to recover from retryable errors.
+	//遇到可重试错误的最大重试次数
 	commitRetryLimit = 10
 )
 
@@ -119,6 +127,7 @@ func SetSchemaLease(lease time.Duration) {
 }
 
 // SetStatsLease changes the default stats lease time for loading stats info.
+// SetStatsLease更改用于加载统计信息的默认统计租用时间。
 func SetStatsLease(lease time.Duration) {
 	statsLease = lease
 }
@@ -128,6 +137,7 @@ func SetStatsLease(lease time.Duration) {
 // Retryable errors are generally refer to temporary errors that are expected to be
 // reinstated by retry, including network interruption, transaction conflicts, and
 // so on.
+//可重试错误通常是指应通过重试恢复的临时错误，包括网络中断，事务冲突等。
 func SetCommitRetryLimit(limit int) {
 	commitRetryLimit = limit
 }
@@ -239,11 +249,13 @@ func RegisterLocalStore(name string, driver engine.Driver) error {
 //
 // The path must be a URL format 'engine://path?params' like the one for
 // tidb.Open() but with the dbname cut off.
+//路径必须是URL格式'engine://path?params'，类似于tidb.Open()的格式，但是dbname会被截断。
 // Examples:
 //    goleveldb://relative/path
 //    boltdb:///absolute/path
 //
 // The engine should be registered before creating storage.
+//在创建存储之前，应先注册引擎。
 func NewStore(path string) (kv.Storage, error) {
 	return newStoreWithRetry(path, defaultMaxRetries)
 }
@@ -262,6 +274,7 @@ func newStoreWithRetry(path string, maxRetries int) (kv.Storage, error) {
 
 	var s kv.Storage
 	err1 := util.RunWithRetry(maxRetries, retryInterval, func() (bool, error) {
+		//driver进行open，构建tikvstore,其可以和pd,etcd,tikv通信
 		s, err = d.Open(path)
 		return kv.IsRetryableError(err), err
 	})

@@ -24,6 +24,7 @@ import (
 )
 
 // RunInNewTxn will run the f in a new transaction environment.
+// 将在新的事务环境中运行f。
 func RunInNewTxn(store Storage, retryable bool, f func(txn Transaction) error) error {
 	var (
 		err           error
@@ -38,27 +39,32 @@ func RunInNewTxn(store Storage, retryable bool, f func(txn Transaction) error) e
 		}
 
 		if i == 0 {
+			//获取txn的startTS
 			originalTxnTS = txn.StartTS()
 		}
-
+		//执行
 		err = f(txn)
 		if retryable && IsRetryableError(err) {
 			log.Warnf("[kv] Retry txn %v original txn %v err %v", txn, originalTxnTS, err)
+			//可重试，并且是可重试错误
 			err1 := txn.Rollback()
 			terror.Log(errors.Trace(err1))
 			continue
 		}
 		if err != nil {
+			//回滚
 			err1 := txn.Rollback()
 			terror.Log(errors.Trace(err1))
 			return errors.Trace(err)
 		}
-
+		//提交
 		err = txn.Commit()
 		if retryable && IsRetryableError(err) {
 			log.Warnf("[kv] Retry txn %v original txn %v err %v", txn, originalTxnTS, err)
+			//出错则进行回滚
 			err1 := txn.Rollback()
 			terror.Log(errors.Trace(err1))
+			//根据重试的次数，进行退避
 			BackOff(i)
 			continue
 		}

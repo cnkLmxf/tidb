@@ -1027,7 +1027,7 @@ func BootstrapSession(store kv.Storage) (*domain.Domain, error) {
 	ver := getStoreBootstrapVersion(store)
 	if ver == notBootstrapped {
 		runInBootstrapSession(store, bootstrap)
-	} else if ver < currentBootstrapVersion {
+	} else if ver < currentBootstrapVersion { //小于当前版本则更新版本
 		runInBootstrapSession(store, upgrade)
 	}
 
@@ -1063,6 +1063,9 @@ func BootstrapSession(store kv.Storage) (*domain.Domain, error) {
 // If no bootstrap and storage is remote, we must use a little lease time to
 // bootstrap quickly, after bootstrapped, we will reset the lease time.
 // TODO: Using a bootstap tool for doing this may be better later.
+// runInBootstrapSession为boostrap创建一个特殊的会话。
+// 如果没有引导并且存储是远程的，则必须使用一些租用时间来快速引导，在引导后，我们将重置租用时间。
+// TODO：稍后使用引导工具进行此操作可能会更好。
 func runInBootstrapSession(store kv.Storage, bootstrap func(Session)) {
 	saveLease := schemaLease
 	if !localstore.IsLocalStore(store) {
@@ -1107,6 +1110,9 @@ func createSession(store kv.Storage) (*session, error) {
 // We need this because when we start DDL in Domain, the DDL need a session
 // to change some system tables. But at that time, we have been already in
 // a lock context, which cause we can't call createSesion directly.
+// createSessionWithDomain 创建一个新的Session并将其与Domain绑定。
+//我们之所以需要这样做，是因为当我们在Domain中启动DDL时，DDL需要一个会话来更改某些系统表。
+//但是那时，我们已经处于锁定上下文中，这导致我们无法直接调用createSesion。
 func createSessionWithDomain(store kv.Storage, dom *domain.Domain) (*session, error) {
 	s := &session{
 		store:       store,
@@ -1114,6 +1120,7 @@ func createSessionWithDomain(store kv.Storage, dom *domain.Domain) (*session, er
 		sessionVars: variable.NewSessionVars(),
 	}
 	s.mu.values = make(map[fmt.Stringer]interface{})
+	//将seesion和dom绑定
 	sessionctx.BindDomain(s, dom)
 	// session implements variable.GlobalVarAccessor. Bind it to ctx.
 	s.sessionVars.GlobalVarsAccessor = s
@@ -1131,7 +1138,7 @@ func getStoreBootstrapVersion(store kv.Storage) int64 {
 	if ok {
 		return currentBootstrapVersion
 	}
-
+	//这里是bootstrap key的value,即version
 	var ver int64
 	// check in kv store
 	err := kv.RunInNewTxn(store, false, func(txn kv.Transaction) error {
@@ -1144,9 +1151,10 @@ func getStoreBootstrapVersion(store kv.Storage) int64 {
 	if err != nil {
 		log.Fatalf("check bootstrapped err %v", err)
 	}
-
+	//0代表还没有bootstraped
 	if ver > notBootstrapped {
 		// here mean memory is not ok, but other server has already finished it
+		//这里表示内存没ok，但是其他server已经完成了
 		storeBootstrapped[store.UUID()] = true
 	}
 

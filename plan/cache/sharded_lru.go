@@ -21,12 +21,16 @@ import (
 
 var (
 	// PlanCacheEnabled stores the global config "plan-cache-enabled".
+	// PlanCacheEnabled存储全局配置“ plan-cache-enabled”。
 	PlanCacheEnabled bool
 	// PlanCacheShards stores the global config "plan-cache-shards".
+	// PlanCacheShards存储全局配置“ plan-cache-shards”。
 	PlanCacheShards int64
 	// PlanCacheCapacity stores the global config "plan-cache-capacity".
+	// PlanCacheCapacity存储全局配置“ plan-cache-capacity”。
 	PlanCacheCapacity int64
 	// GlobalPlanCache stores the global plan cache for every session in a tidb-server.
+	// GlobalPlanCache将每个会话的全局计划缓存存储在tidb服务器中。
 	GlobalPlanCache *ShardedLRUCache
 )
 

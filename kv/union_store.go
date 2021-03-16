@@ -56,6 +56,7 @@ type conditionPair struct {
 
 // UnionStore is an in-memory Store which contains a buffer for write and a
 // snapshot for read.
+// UnionStore是一个内存存储，其中包含用于写入的缓冲区和用于读取的快照。
 type unionStore struct {
 	*BufferStore
 	snapshot           Snapshot                    // for read

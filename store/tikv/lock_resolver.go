@@ -29,11 +29,13 @@ import (
 const resolvedCacheSize = 512
 
 // LockResolver resolves locks and also caches resolved txn status.
+// LockResolver解析锁，还缓存解析的txn状态。
 type LockResolver struct {
 	store *tikvStore
 	mu    struct {
 		sync.RWMutex
 		// resolved caches resolved txns (FIFO, txn id -> txnStatus).
+		//resolved 缓存已解析的txns（FIFO，txn id-> txnStatus）。
 		resolved       map[uint64]TxnStatus
 		recentResolved *list.List
 	}

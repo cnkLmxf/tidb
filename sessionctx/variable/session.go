@@ -167,6 +167,7 @@ type SessionVars struct {
 	BinlogClient interface{}
 
 	// GlobalVarsAccessor is used to set and get global variables.
+	// GlobalVarsAccessor用于设置和获取全局变量。
 	GlobalVarsAccessor GlobalVarAccessor
 
 	// LastFoundRows is the number of found rows of last query statement

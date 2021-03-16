@@ -122,15 +122,23 @@ func main() {
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-
+	//注册store的driver
 	registerStores()
+	//加载配置
 	loadConfig()
+	//根据文件配置覆盖默认配置
 	overrideConfig()
+	//判断是否root特权冲突
 	validateConfig()
+	//设置全局变量
 	setGlobalVars()
+	//启动日志打印，初始化日志相关的配置，比如打印级别，路径等
 	setupLog()
+	//打印log基本信息
 	printInfo()
+	//设置binlog客户端
 	setupBinlogClient()
+	//
 	createStoreAndDomain()
 	createServer()
 	setupSignalHandler()

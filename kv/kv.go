@@ -72,31 +72,45 @@ var (
 )
 
 // Retriever is the interface wraps the basic Get and Seek methods.
+//该接口包装了基本的Get和Seek方法。
 type Retriever interface {
 	// Get gets the value for key k from kv store.
 	// If corresponding kv pair does not exist, it returns nil and ErrNotExist.
+	// Get从kv商店获取密钥k的值。
+	//如果相应的kv对不存在，则返回nil和ErrNotExist。
 	Get(k Key) ([]byte, error)
 	// Seek creates an Iterator positioned on the first entry that k <= entry's key.
 	// If such entry is not found, it returns an invalid Iterator with no error.
 	// The Iterator must be Closed after use.
+	// Seek创建一个迭代器，该迭代器位于k <=项的键的第一个项上。
+	// 如果找不到这样的条目，它将返回一个没有错误的无效Iterator。
+	// 迭代器在使用后必须关闭。
 	Seek(k Key) (Iterator, error)
 
 	// SeekReverse creates a reversed Iterator positioned on the first entry which key is less than k.
 	// The returned iterator will iterate from greater key to smaller key.
 	// If k is nil, the returned iterator will be positioned at the last key.
+	// SeekReverse在第一个条目上创建一个反向迭代器，该迭代器的键号小于k。
+	// 返回的迭代器将从较大的密钥迭代到较小的密钥。
+	// 如果k为nil，则返回的迭代器将位于最后一个键处。
 	SeekReverse(k Key) (Iterator, error)
 }
 
 // Mutator is the interface wraps the basic Set and Delete methods.
+// 包装基本Set和Delete方法的接口。
 type Mutator interface {
 	// Set sets the value for key k as v into kv store.
 	// v must NOT be nil or empty, otherwise it returns ErrCannotSetNilValue.
+	// Set将键k的值设置为v到kv存储中。
+	// v不能为nil或为空，否则它将返回ErrCannotSetNilValue。
 	Set(k Key, v []byte) error
 	// Delete removes the entry for key k from kv store.
+	// Delete从kv商店中删除密钥k的条目。
 	Delete(k Key) error
 }
 
 // RetrieverMutator is the interface that groups Retriever and Mutator interfaces.
+// RetrieverMutator是将Retriever和Mutator接口分组的接口。
 type RetrieverMutator interface {
 	Retriever
 	Mutator

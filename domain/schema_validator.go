@@ -32,19 +32,27 @@ const (
 )
 
 // SchemaValidator is the interface for checking the validity of schema version.
+// SchemaValidator是用于检查schema版本有效性的接口。
 type SchemaValidator interface {
 	// Update the schema validator, add a new item, delete the expired deltaSchemaInfos.
 	// The latest schemaVer is valid within leaseGrantTime plus lease duration.
 	// Add the changed table IDs to the new schema information,
 	// which is produced when the oldSchemaVer is updated to the newSchemaVer.
+	//更新schema验证器，添加新iterm，删除过期的deltaSchemaInfos。
+	//最新的schemaVer在leaseGrantTime加上租约期限内有效。
+	//将更改后的表ID添加到新的架构信息中，该信息是在将oldSchemaVer更新为newSchemaVer时生成的。
 	Update(leaseGrantTime uint64, oldSchemaVer, newSchemaVer int64, changedTableIDs []int64)
 	// Check is it valid for a transaction to use schemaVer and related tables, at timestamp txnTS.
+	//在时间戳txnTS上检查使用schemaVer和相关表对事务是否有效。
 	Check(txnTS uint64, schemaVer int64, relatedTableIDs []int64) checkResult
 	// Stop stops checking the valid of transaction.
+	// Stop停止检查事务的有效性。
 	Stop()
 	// Restart restarts the schema validator after it is stopped.
+	//重新启动后，模式验证器将停止。
 	Restart()
 	// Reset resets SchemaValidator to initial state.
+	//重置会将SchemaValidator重置为初始状态。
 	Reset()
 }
 
@@ -60,6 +68,7 @@ type schemaValidator struct {
 	latestSchemaVer    int64
 	latestSchemaExpire time.Time
 	// deltaSchemaInfos is a queue that maintain the history of changes.
+	// deltaSchemaInfos是维护更改历史记录的队列。
 	deltaSchemaInfos []deltaSchemaInfo
 }
 

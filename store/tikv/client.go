@@ -53,6 +53,7 @@ type Client interface {
 }
 
 type connArray struct {
+	//index是进行轮询的下标索引
 	index uint32
 	v     []*grpc.ClientConn
 }
@@ -109,9 +110,14 @@ func (a *connArray) Close() {
 // that there are too many concurrent requests which overload the service of TiKV.
 // TODO: Implement background cleanup. It adds a background goroutine to periodically check
 // whether there is any connection is idle and then close and remove these idle connections.
+// rpcClient是RPC客户端结构。
+// TODO：在TiDB中的RPC客户端和TiKV中的RPC服务器之间添加流控制。
+//由于我们使用共享的客户端连接与同一个TiKV通信，因此并发请求太多可能会使TiKV的服务超载。
+// TODO：实施后台清理。 它添加了一个后台goroutine，以定期检查是否有任何空闲连接，然后关闭并删除这些空闲连接。
 type rpcClient struct {
 	sync.RWMutex
 	isClosed bool
+	//这里是tikv节点和其连接的映射
 	conns    map[string]*connArray
 }
 

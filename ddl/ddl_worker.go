@@ -28,6 +28,7 @@ import (
 )
 
 // RunWorker indicates if this TiDB server starts DDL worker and can run DDL job.
+// RunWorker指示此TiDB服务器是否启动DDL worker并可以运行DDL作业。
 var RunWorker = true
 
 // onDDLWorker is for async online schema changing, it will try to become the owner firstly,

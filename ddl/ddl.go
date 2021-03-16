@@ -58,6 +58,7 @@ var (
 	// EnableSplitTableRegion is a flag to decide whether to split a new region for
 	// a newly created table. It takes effect only if the Storage supports split
 	// region.
+	// EnableSplitTableRegion是一个标志，用于决定是否为新创建的表拆分新region。 仅当存储支持拆分region时，此选项才生效。
 	EnableSplitTableRegion = false
 )
 

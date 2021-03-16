@@ -409,11 +409,12 @@ type EtcdBackend interface {
 }
 
 // NewDomain creates a new domain. Should not create multiple domains for the same store.
+// NewDomain创建一个新domain。 不应为同一商店创建多个domain。
 func NewDomain(store kv.Storage, ddlLease time.Duration, statsLease time.Duration, factory pools.Factory, sysFactory func(*Domain) (pools.Resource, error)) (*Domain, error) {
-	capacity := 200                // capacity of the sysSessionPool size
-	idleTimeout := 3 * time.Minute // sessions in the sysSessionPool will be recycled after idleTimeout
+	capacity := 200                // capacity of the sysSessionPool size。sysSessionPool大小的容量
+	idleTimeout := 3 * time.Minute // sessions in the sysSessionPool will be recycled after idleTimeout。sysSessionPool中的session将在idleTimeout之后被回收
 	d := &Domain{
-		store:           store,
+		store:           store, //tikvstore
 		SchemaValidator: NewSchemaValidator(ddlLease),
 		exit:            make(chan struct{}),
 		sysSessionPool:  pools.NewResourcePool(factory, capacity, capacity, idleTimeout),
@@ -551,6 +552,7 @@ func (do *Domain) CreateStatsHandle(ctx context.Context) {
 }
 
 // RunAutoAnalyze indicates if this TiDB server starts auto analyze worker and can run auto analyze job.
+// RunAutoAnalyze指示此TiDB服务器是否启动自动分析工作程序并可以运行自动分析作业。
 var RunAutoAnalyze = true
 
 // UpdateTableStatsLoop creates a goroutine loads stats info and updates stats info in a loop.

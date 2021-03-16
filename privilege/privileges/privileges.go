@@ -29,6 +29,7 @@ import (
 var Enable = true
 
 // SkipWithGrant causes the server to start without using the privilege system at all.
+// SkipWithGrant导致服务器完全不使用特权系统启动。
 var SkipWithGrant = false
 
 // privilege error codes.

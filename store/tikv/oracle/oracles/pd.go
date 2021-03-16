@@ -40,12 +40,16 @@ type pdOracle struct {
 // PdOracle mantains `lastTS` to store the last timestamp got from PD server. If
 // `GetTimestamp()` is not called after `updateInterval`, it will be called by
 // itself to keep up with the timestamp on PD server.
+// NewPdOracle创建一个使用pd客户端源的Oracle。
+//有关更多详细信息，请参阅https://github.com/pingcap/pd/blob/master/pd-client/client.go。
+// PdOracle保留`lastTS`来存储从PD服务器获取的最后一个时间戳。 如果在updateInterval之后没有调用GetTimestamp（），它将被自身调用以跟上PD服务器上的时间戳。
 func NewPdOracle(pdClient pd.Client, updateInterval time.Duration) (oracle.Oracle, error) {
 	o := &pdOracle{
 		c:    pdClient,
 		quit: make(chan struct{}),
 	}
 	ctx := goctx.TODO()
+	//定期更新timestamp
 	go o.updateTS(ctx, updateInterval)
 	// Initialize lastTS by Get.
 	_, err := o.GetTimestamp(ctx)

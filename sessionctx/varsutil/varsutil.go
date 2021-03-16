@@ -99,6 +99,7 @@ func GetScopeNoneSystemVar(key string) (string, bool, error) {
 const epochShiftBits = 18
 
 // SetSessionSystemVar sets system variable and updates SessionVars states.
+// SetSessionSystemVar 设置系统变量并更新SessionVars状态。
 func SetSessionSystemVar(vars *variable.SessionVars, name string, value types.Datum) error {
 	name = strings.ToLower(name)
 	sysVar := variable.SysVars[name]

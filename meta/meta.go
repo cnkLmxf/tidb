@@ -77,6 +77,7 @@ var (
 )
 
 // Meta is for handling meta information in a transaction.
+// Meta用于处理事务中的元信息。
 type Meta struct {
 	txn *structure.TxStructure
 }
@@ -85,6 +86,7 @@ type Meta struct {
 func NewMeta(txn kv.Transaction) *Meta {
 	txn.SetOption(kv.Priority, kv.PriorityHigh)
 	txn.SetOption(kv.SyncLog, true)
+	// Meta用于处理事务中的元信息。
 	t := structure.NewStructure(txn, txn, mMetaPrefix)
 	return &Meta{txn: t}
 }
@@ -581,7 +583,10 @@ func (s *jobsSorter) Less(i, j int) bool {
 
 // GetBootstrapVersion returns the version of the server which boostrap the store.
 // If the store is not bootstraped, the version will be zero.
+// Get Bootstrap Version返回引导商店的服务器版本。
+// 如果没有store还没有bootstraps，则version将为零。
 func (m *Meta) GetBootstrapVersion() (int64, error) {
+	//获取bootstrap key的value只
 	value, err := m.txn.GetInt64(mBootstrapKey)
 	return value, errors.Trace(err)
 }

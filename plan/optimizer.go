@@ -27,6 +27,7 @@ import (
 )
 
 // AllowCartesianProduct means whether tidb allows cartesian join without equal conditions.
+// AllowCartesianProduct表示tidb是否允许在没有相等条件的情况下进行笛卡尔联接。
 var AllowCartesianProduct = true
 
 const (
